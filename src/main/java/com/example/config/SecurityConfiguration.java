@@ -1,6 +1,7 @@
 package com.example.config;
 
 
+import com.example.eneity.RestBean;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -21,16 +22,16 @@ public class SecurityConfiguration {
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        return http //拦截
+        return http
                 .authorizeHttpRequests(conf -> conf
                         .requestMatchers("/api/auth/**").permitAll()
                         .anyRequest().authenticated()
-                ) //登录
+                )
                 .formLogin(conf -> conf
                         .loginProcessingUrl("/api/auth/login")
-                        .failureHandler(this::onAuthenticationFailure)
                         .successHandler(this::onAuthenticationSuccess)
-                ) //登出
+                        .failureHandler(this::onAuthenticationFailure)
+                )
                 .logout(conf -> conf
                         .logoutUrl("/api/auth/logout")
                         .logoutSuccessHandler(this::onLogoutSuccess)
@@ -44,13 +45,17 @@ public class SecurityConfiguration {
     public void onAuthenticationFailure(HttpServletRequest request,
                                         HttpServletResponse response,
                                         AuthenticationException exception) throws IOException, ServletException {
-        response.getWriter().write("failure");
+        response.setContentType("application/json");
+        response.setCharacterEncoding("utf-8");
+        response.getWriter().write(RestBean.failure(401, exception.getMessage()).asJsonString());
     }
 
     public void onAuthenticationSuccess(HttpServletRequest request,
                                         HttpServletResponse response,
                                         Authentication authentication) throws IOException, ServletException {
-        response.getWriter().write("success");
+        response.setContentType("application/json");
+        response.setCharacterEncoding("utf-8");
+        response.getWriter().write(RestBean.success().asJsonString());
     }
 
     public void onLogoutSuccess(HttpServletRequest request,
